@@ -80,6 +80,8 @@ def write_image_csv(file='images_database.csv', image=None):
         fieldnames = ['id', 'path', 'name', 'description', 'tags']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if image is not None:
+            for i in range(0, len(image.tags)):
+                image.tags[i] = image.tags[i].lower()
             writer.writerow(
                 {
                     'id': image.image_id,
@@ -211,7 +213,7 @@ def delete_tags_for_image(file='images_database.csv', image_id=None):
             writer.writerows(lines)
 
 
-def add_tag_to_image(file='images_database.csv', image_id=None, tag=None):
+def add_tag_to_image(file='images_database.csv', image_id=None, tag: str = None):
     if tag is None:
         print('Tag is invalid')
     else:
@@ -224,7 +226,7 @@ def add_tag_to_image(file='images_database.csv', image_id=None, tag=None):
                     lines.append(row)
                 else:
                     tags = extract_array_from_string(row['tags'])
-                    tags.append(tag)
+                    tags.append(tag.lower())
                     new_row = {
                         'id': image_id,
                         'path': row['path'],
