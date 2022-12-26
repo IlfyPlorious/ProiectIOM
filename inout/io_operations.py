@@ -1,5 +1,6 @@
 import csv
-
+import os
+import uuid
 from models.model import Tag, Image
 
 
@@ -293,3 +294,15 @@ def extract_array_from_string(string: str):
         string_array.append(split_copy)
 
     return string_array
+
+
+def reload_images(path):  # in case we find a way to refresh the list of photos in case the user deletes one
+    files = os.listdir(path)  # Detect in some way if changes appeared to current path
+    for i in files:
+        if i[-4:] != ".jpg":
+            files.remove(i)
+
+    for i in files:
+        image_path = os.path.join(path, i).replace("\\", "/")
+        img = Image(image_id=uuid.uuid4(), path=image_path, name=image_path.split("/")[-1])
+        write_image_csv(file='images_database.csv', image=img)
