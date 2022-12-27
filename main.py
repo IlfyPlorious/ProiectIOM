@@ -8,22 +8,27 @@ my_images = []
 current_page = 0
 rs = []
 path = None
-
+previous_path = None
 
 def choose_path():
     global my_images
     global path
+    global previous_path
     path = filedialog.askdirectory(title='Choose Directory')
-    if os.path.exists(os.path.join(path, 'images_database.csv').replace("\\", "/")):
+    if path == '':
+        path = previous_path
+    if os.path.exists(os.path.join(path, 'images_database.csv').replace("\\", "/")) and path != '':
         refresh_images(path)
         my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
         load_images(0)
+        previous_path = path
 
     else:
         init_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
         refresh_images(path)
         my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
         load_images(0)
+        previous_path = path
 
 
 def load_images(page):
@@ -43,12 +48,13 @@ def load_images(page):
     global rs
 
     current_page = page
-    if rs != [] and querry.get() != '':
+    if rs != [] and query.get() != '':
         my_images = rs
-    elif rs == [] and querry.get() != '':
-        messagebox.showerror('Search Error', 'Error: No search result found! \n Search querry has been reset.')
+    elif rs == [] and query.get() != '':
+        messagebox.showerror('Search Error', 'Error: No search result found! \n Search query has been reset.')
+        query.set('')
         my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
-    elif (rs != [] and querry.get() == '') or (rs == [] and querry.get() == ''):
+    elif (rs != [] and query.get() == '') or (rs == [] and query.get() == ''):
         # messagebox.showinfo("Load/Reload", "All images have been loaded/reloaded")
         my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
         rs = []
@@ -159,24 +165,27 @@ def previous_page():
 
 
 def preview():
+    # TODO: Link to Andreea's window for viewing image info and adding/deleting tags
     return
 
 
 def search_img():
     global rs
     if (keep.get() == 0) or (keep.get() == 1 and rs == []):
+        tagshistoryvariable.set(query.get())
         newrs = []
         for i in my_images:
             for j in i.tags:
-                if j == querry.get():
+                if j == query.get():
                     newrs.append(i)
         rs = newrs
 
     elif keep.get() == 1 and rs != []:
+        tagshistoryvariable.set(tagshistoryvariable.get()+', '+query.get())
         newrs = []
         for i in rs:
             for j in i.tags:
-                if j == querry.get():
+                if j == query.get():
                     newrs.append(i)
         rs = newrs
     load_images(0)
@@ -184,12 +193,13 @@ def search_img():
 
 root = Tk()
 
-root.title("Image Viewer")
-root.geometry("1200x600")
+root.title("Image Viewer By Tags")
+root.geometry("1180x560")
 root.resizable(width=True, height=True)
 
-querry = StringVar()
+query = StringVar()
 keep = IntVar()
+tagshistoryvariable = StringVar()
 
 btnpath = Button(root, text="Choose Path of Photos folder", command=choose_path)
 btnpath.grid(row=1, column=0)
@@ -197,7 +207,7 @@ btnpath.grid(row=1, column=0)
 searchhint = Label(root, text='Enter Tag of Photos you want to see:')
 searchhint.grid(row=1, column=1)
 
-searchbox = Entry(root, textvariable=querry)
+searchbox = Entry(root, textvariable=query, width=40)
 searchbox.grid(row=1, column=2)
 
 search = Button(root, text="Search Tag", command=search_img)
@@ -206,23 +216,31 @@ search.grid(row=1, column=4)
 nextpg = Button(root, text="Next Photo", command=next_page)
 nextpg.grid(row=4, column=3)
 
-prev = Button(root, text="Prev Photo", command=previous_page)
+prev = Button(root, text="Previous Photo", command=previous_page)
 prev.grid(row=4, column=0)
 
-refresh = Button(root, text="Refresh", command=refresh_images(path))
+refresh = Button(root, text="Refresh image list", command=refresh_images(path))
 refresh.grid(row=5, column=1)
 
-keepsearch = Checkbutton(root, text="Do you want to keep previous search results?", variable=keep)
+
+tagshistorylabel = Label(root, text="List of last searched Tags:")
+tagshistorylabel.grid(row=5, column=2)
+
+tagshistorylist = Label(root, textvariable=tagshistoryvariable)
+tagshistorylist.grid(row=5, column=3)
+
+keepsearch = Checkbutton(root, text="Do you want to keep previous search results? ", variable=keep)
 keepsearch.grid(row=1, column=3)
 
 canvas1 = Canvas(root, width=250, height=250)
-btn1 = Button(root, text="Select", command=preview())
+btn1 = Button(root, text="Select Photo", command=preview())
 canvas2 = Canvas(root, width=250, height=250)
-btn2 = Button(root, text="Select", command=preview())
+btn2 = Button(root, text="Select Photo", command=preview())
 canvas3 = Canvas(root, width=250, height=250)
-btn3 = Button(root, text="Select", command=preview())
+btn3 = Button(root, text="Select Photo", command=preview())
 canvas4 = Canvas(root, width=250, height=250)
-btn4 = Button(root, text="Select", command=preview())
+btn4 = Button(root, text="Select Photo", command=preview())
 
-
+# Big question: Este necesara si o bifa pentru a face reuniunea tagurilor cautate? Bifa actuala va face intersectia
+# Asta se traduce practic in afisarea tuturor pozelor care au oricare din tagurile x, y, z cautate
 root.mainloop()
