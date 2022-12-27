@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
-
+import PIL.Image
+import PIL.ImageTk
 
 class Tag:
     def __init__(self, tag_id, name) -> None:
@@ -24,9 +24,11 @@ class Image:
     def __str__(self) -> str:
         return f'Image no.{self.image_id}\tName:{self.name}\n{self.description}'
 
-    def display_image(self):
-        image = plt.imread(self.path)
-        plt.figure()
-        plt.title(self.name)
-        plt.imshow(image)
-        plt.show()
+
+#    def display_image(self, width=125, height=125):
+#        global img
+#        img = PIL.Image.open(str(self.path))
+#        img = img.resize((width, height))
+#        img = PIL.ImageTk.PhotoImage(img)
+#        return img
+
