@@ -1,248 +1,251 @@
+import tkinter
 from tkinter import *
 from tkinter import filedialog, messagebox
+from tkinter import ttk
+
+import windows.details_window
 from inout.io_operations import *
 import PIL.Image
 import PIL.ImageTk
 
-my_images = []
-current_page = 0
-rs = []
-path = None
-previous_path = None
 
+class MainWindow(tkinter.Tk):
+    def __init__(self):
+        super().__init__()
 
-def choose_path():
-    global my_images
-    global path
-    global previous_path
-    path = filedialog.askdirectory(title='Choose Directory')
-    if path == '':
-        path = previous_path
-    if os.path.exists(os.path.join(path, 'images_database.csv').replace("\\", "/")) and path != '':
-        refresh_images(path)
-        my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
-        load_images(0)
-        previous_path = path
+        self.title("Image Viewer By Tags")
+        self.geometry("1280x560")
+        self.resizable(width=True, height=True)
 
-    else:
-        init_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
-        refresh_images(path)
-        my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
-        load_images(0)
-        previous_path = path
+        self.my_images = []
+        self.current_page = 0
+        self.rs = []
+        self.path = None
+        self.previous_path = None
 
+        self.rs = []
+        self.current_page = 0
+        self.query = StringVar()
+        self.keep = IntVar()
+        self.tagshistoryvariable = StringVar()
 
-def load_images(page):
-    global canvas1
-    global img1
-    global btn1
-    global canvas2
-    global img2
-    global btn2
-    global canvas3
-    global img3
-    global btn3
-    global canvas4
-    global img4
-    global btn4
-    global current_page
-    global rs
+        self.btnpath = ttk.Button(self, text="Choose Path of Photos folder", command=self.choose_path)
+        self.btnpath.grid(row=1, column=0)
 
-    current_page = page
-    if rs != [] and query.get() != '':
-        my_images = rs
-    elif rs == [] and query.get() != '':
-        messagebox.showerror('Search Error', 'Error: No search result found! \n Search query has been reset.')
-        query.set('')
-        my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
-    elif (rs != [] and query.get() == '') or (rs == [] and query.get() == ''):
-        # messagebox.showinfo("Load/Reload", "All images have been loaded/reloaded")
-        my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
-        rs = []
-    else:
-        my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
+        self.searchhint = ttk.Label(self, text='Enter Tag of Photos you want to see:')
+        self.searchhint.grid(row=1, column=1)
 
-    if len(my_images) > current_page + 3:
-        img1 = PIL.Image.open(str(my_images[current_page].path))
-        img1 = img1.resize((125, 125))
-        img1 = PIL.ImageTk.PhotoImage(img1)
-        canvas1.create_image(125, 125, image=img1)
-        canvas1.grid(row=2, column=0)
-        btn1.grid(row=3, column=0)
+        self.searchbox = ttk.Entry(self, textvariable=self.query, width=40)
+        self.searchbox.grid(row=1, column=2)
 
-        img2 = PIL.Image.open(str(my_images[current_page + 1].path))
-        img2 = img2.resize((125, 125))
-        img2 = PIL.ImageTk.PhotoImage(img2)
-        canvas2.create_image(125, 125, image=img2)
-        canvas2.grid(row=2, column=1)
-        btn2.grid(row=3, column=1)
+        self.search = ttk.Button(self, text="Search Tag", command=self.search_img)
+        self.search.grid(row=1, column=4)
 
-        img3 = PIL.Image.open(str(my_images[current_page + 2].path))
-        img3 = img3.resize((125, 125))
-        img3 = PIL.ImageTk.PhotoImage(img3)
-        canvas3.create_image(125, 125, image=img3)
-        canvas3.grid(row=2, column=2)
-        btn3.grid(row=3, column=2)
+        self.nextpg = ttk.Button(self, text="Next Photo", command=self.next_page)
+        self.nextpg.grid(row=4, column=3)
 
-        img4 = PIL.Image.open(str(my_images[current_page + 3].path))
-        img4 = img4.resize((125, 125))
-        img4 = PIL.ImageTk.PhotoImage(img4)
-        canvas4.create_image(125, 125, image=img4)
-        canvas4.grid(row=2, column=3)
-        btn4.grid(row=3, column=3)
-    elif len(my_images) > current_page + 2:
-        img1 = PIL.Image.open(str(my_images[current_page].path))
-        img1 = img1.resize((125, 125))
-        img1 = PIL.ImageTk.PhotoImage(img1)
-        canvas1.create_image(125, 125, image=img1)
-        canvas1.grid(row=2, column=0)
-        btn1.grid(row=3, column=0)
+        self.prev = ttk.Button(self, text="Previous Photo", command=self.previous_page)
+        self.prev.grid(row=4, column=0)
 
-        img2 = PIL.Image.open(str(my_images[current_page + 1].path))
-        img2 = img2.resize((125, 125))
-        img2 = PIL.ImageTk.PhotoImage(img2)
-        canvas2.create_image(125, 125, image=img2)
-        canvas2.grid(row=2, column=1)
-        btn2.grid(row=3, column=1)
+        self.refresh = ttk.Button(self, text="Refresh image list", command=self.refresh_images(self.path))
+        self.refresh.grid(row=5, column=1)
 
-        img3 = PIL.Image.open(str(my_images[current_page + 2].path))
-        img3 = img3.resize((125, 125))
-        img3 = PIL.ImageTk.PhotoImage(img3)
-        canvas3.create_image(125, 125, image=img3)
-        canvas3.grid(row=2, column=2)
-        btn3.grid(row=3, column=2)
+        self.tagshistorylabel = ttk.Label(self, text="List of last searched Tags:")
+        self.tagshistorylabel.grid(row=5, column=2)
 
-        canvas4.grid_remove()
-        btn4.grid_remove()
-    elif len(my_images) > current_page + 1:
-        img1 = PIL.Image.open(str(my_images[current_page].path))
-        img1 = img1.resize((125, 125))
-        img1 = PIL.ImageTk.PhotoImage(img1)
-        canvas1.create_image(125, 125, image=img1)
-        canvas1.grid(row=2, column=0)
-        btn1.grid(row=3, column=0)
+        self.tagshistorylist = ttk.Label(self, textvariable=self.tagshistoryvariable)
+        self.tagshistorylist.grid(row=5, column=3)
 
-        img2 = PIL.Image.open(str(my_images[current_page + 1].path))
-        img2 = img2.resize((125, 125))
-        img2 = PIL.ImageTk.PhotoImage(img2)
-        canvas2.create_image(125, 125, image=img2)
-        canvas2.grid(row=2, column=1)
-        btn2.grid(row=3, column=1)
+        self.keepsearch = ttk.Checkbutton(self, text="Do you want to keep previous search results? ",
+                                          variable=self.keep)
+        self.keepsearch.grid(row=1, column=3)
 
-        canvas3.grid_remove()
-        btn3.grid_remove()
-        canvas4.grid_remove()
-        btn4.grid_remove()
-    elif len(my_images) > current_page:
-        img1 = PIL.Image.open(str(my_images[current_page].path))
-        img1 = img1.resize((125, 125))
-        img1 = PIL.ImageTk.PhotoImage(img1)
-        canvas1.create_image(125, 125, image=img1)
-        canvas1.grid(row=2, column=0)
-        btn1.grid(row=3, column=0)
+        self.canvas1 = Canvas(self, width=250, height=250)
+        self.btn1 = Button(self, text="Select Photo", command=lambda: self.preview(0))
+        self.canvas2 = Canvas(self, width=250, height=250)
+        self.btn2 = Button(self, text="Select Photo", command=lambda: self.preview(1))
+        self.canvas3 = Canvas(self, width=250, height=250)
+        self.btn3 = Button(self, text="Select Photo", command=lambda: self.preview(2))
+        self.canvas4 = Canvas(self, width=250, height=250)
+        self.btn4 = Button(self, text="Select Photo", command=lambda: self.preview(3))
 
-        canvas2.grid_remove()
-        btn2.grid_remove()
-        canvas3.grid_remove()
-        btn3.grid_remove()
-        canvas4.grid_remove()
-        btn4.grid_remove()
-    else:
-        current_page = page - 1
+        self.img1 = None
+        self.img2 = None
+        self.img3 = None
+        self.img4 = None
 
+    def choose_path(self):
+        self.path = filedialog.askdirectory(title='Choose Directory')
+        if self.path == '':
+            self.path = self.previous_path
+        if os.path.exists(os.path.join(self.path, 'images_database.csv').replace("\\", "/")) and self.path != '':
+            self.refresh_images(self.path)
+            self.my_images = read_images_csv(file=os.path.join(self.path, 'images_database.csv').replace("\\", "/"))
+            self.load_images(0)
+            self.previous_path = self.path
 
-def next_page():
-    global current_page
-    nextpage = current_page + 1
-    if len(my_images) >= nextpage:
-        load_images(nextpage)
+        else:
+            init_images_csv(file=os.path.join(self.path, 'images_database.csv').replace("\\", "/"))
+            self.refresh_images(self.path)
+            self.my_images = read_images_csv(file=os.path.join(self.path, 'images_database.csv').replace("\\", "/"))
+            self.load_images(0)
+            self.previous_path = self.path
 
+    def load_images(self, page):
+        self.current_page = page
+        if self.rs != [] and self.query.get() != '':
+            self.my_images = self.rs
+        elif self.rs == [] and self.query.get() != '':
+            messagebox.showerror('Search Error', 'Error: No search result found! \n Search query has been reset.')
+            self.query.set('')
+            self.my_images = read_images_csv(file=os.path.join(self.path, 'images_database.csv').replace("\\", "/"))
+        elif (self.rs != [] and self.query.get() == '') or (self.rs == [] and self.query.get() == ''):
+            # messagebox.showinfo("Load/Reload", "All images have been loaded/reloaded")
+            self.my_images = read_images_csv(file=os.path.join(self.path, 'images_database.csv').replace("\\", "/"))
+            self.rs = []
+        else:
+            self.my_images = read_images_csv(file=os.path.join(self.path, 'images_database.csv').replace("\\", "/"))
 
-def previous_page():
-    global current_page
-    prevpage = current_page - 1
-    if prevpage >= 0:
-        load_images(prevpage)
+        if len(self.my_images) > self.current_page + 3:
+            img1 = PIL.Image.open(str(self.my_images[self.current_page].path))
+            img1 = img1.resize((125, 125))
+            self.canvas1.grid(row=2, column=0)
+            self.btn1.grid(row=3, column=0)
+            self.img1 = PIL.ImageTk.PhotoImage(img1)
+            self.canvas1.create_image(125, 125, image=self.img1)
 
+            img2 = PIL.Image.open(str(self.my_images[self.current_page + 1].path))
+            img2 = img2.resize((125, 125))
+            self.img2 = PIL.ImageTk.PhotoImage(img2)
+            self.canvas2.create_image(125, 125, image=self.img2)
+            self.canvas2.grid(row=2, column=1)
+            self.btn2.grid(row=3, column=1)
 
-def preview():
-    # TODO: Link to Andreea's window for viewing image info and adding/deleting tags
-    return
+            img3 = PIL.Image.open(str(self.my_images[self.current_page + 2].path))
+            img3 = img3.resize((125, 125))
+            self.img3 = PIL.ImageTk.PhotoImage(img3)
+            self.canvas3.create_image(125, 125, image=self.img3)
+            self.canvas3.grid(row=2, column=2)
+            self.btn3.grid(row=3, column=2)
 
+            img4 = PIL.Image.open(str(self.my_images[self.current_page + 3].path))
+            img4 = img4.resize((125, 125))
+            self.img4 = PIL.ImageTk.PhotoImage(img4)
+            self.canvas4.create_image(125, 125, image=self.img4)
+            self.canvas4.grid(row=2, column=3)
+            self.btn4.grid(row=3, column=3)
+        elif len(self.my_images) > self.current_page + 2:
+            img1 = PIL.Image.open(str(self.my_images[self.current_page].path))
+            img1 = img1.resize((125, 125))
+            self.img1 = PIL.ImageTk.PhotoImage(img1)
+            self.canvas1.create_image(125, 125, image=self.img1)
+            self.canvas1.grid(row=2, column=0)
+            self.btn1.grid(row=3, column=0)
 
-def search_img():
-    global rs
-    if (keep.get() == 0) or (keep.get() == 1 and rs == []):
-        tagshistoryvariable.set(query.get())
-        newrs = []
-        for i in my_images:
-            for j in i.tags:
-                if j == query.get():
-                    newrs.append(i)
-        rs = newrs
+            img2 = PIL.Image.open(str(self.my_images[self.current_page + 1].path))
+            img2 = img2.resize((125, 125))
+            self.img2 = PIL.ImageTk.PhotoImage(img2)
+            self.canvas2.create_image(125, 125, image=self.img2)
+            self.canvas2.grid(row=2, column=1)
+            self.btn2.grid(row=3, column=1)
 
-    elif keep.get() == 1 and rs != []:
-        tagshistoryvariable.set(tagshistoryvariable.get() + ', ' + query.get())
-        newrs = []
-        for i in rs:
-            for j in i.tags:
-                if j == query.get():
-                    newrs.append(i)
-        rs = newrs
-    load_images(0)
+            img3 = PIL.Image.open(str(self.my_images[self.current_page + 2].path))
+            img3 = img3.resize((125, 125))
+            self.img3 = PIL.ImageTk.PhotoImage(img3)
+            self.canvas3.create_image(125, 125, image=self.img3)
+            self.canvas3.grid(row=2, column=2)
+            self.btn3.grid(row=3, column=2)
 
+            self.canvas4.grid_remove()
+            self.btn4.grid_remove()
+        elif len(self.my_images) > self.current_page + 1:
+            img1 = PIL.Image.open(str(self.my_images[self.current_page].path))
+            img1 = img1.resize((125, 125))
+            self.img1 = PIL.ImageTk.PhotoImage(img1)
+            self.canvas1.create_image(125, 125, image=self.img1)
+            self.canvas1.grid(row=2, column=0)
+            self.btn1.grid(row=3, column=0)
 
-root = Tk()
+            img2 = PIL.Image.open(str(self.my_images[self.current_page + 1].path))
+            img2 = img2.resize((125, 125))
+            self.img2 = PIL.ImageTk.PhotoImage(img2)
+            self.canvas2.create_image(125, 125, image=self.img2)
+            self.canvas2.grid(row=2, column=1)
+            self.btn2.grid(row=3, column=1)
 
-root.title("Image Viewer By Tags")
-root.geometry("1180x560")
-root.resizable(width=True, height=True)
+            self.canvas3.grid_remove()
+            self.btn3.grid_remove()
+            self.canvas4.grid_remove()
+            self.btn4.grid_remove()
+        elif len(self.my_images) > self.current_page:
+            img1 = PIL.Image.open(str(self.my_images[self.current_page].path))
+            img1 = img1.resize((125, 125))
+            self.img1 = PIL.ImageTk.PhotoImage(img1)
+            self.canvas1.create_image(125, 125, image=self.img1)
+            self.canvas1.grid(row=2, column=0)
+            self.btn1.grid(row=3, column=0)
 
-query = StringVar()
-keep = IntVar()
-tagshistoryvariable = StringVar()
+            self.canvas2.grid_remove()
+            self.btn2.grid_remove()
+            self.canvas3.grid_remove()
+            self.btn3.grid_remove()
+            self.canvas4.grid_remove()
+            self.btn4.grid_remove()
+        else:
+            self.current_page = page - 1
 
-btnpath = Button(root, text="Choose Path of Photos folder", command=choose_path)
-btnpath.grid(row=1, column=0)
+    def next_page(self):
+        nextpage = self.current_page + 1
+        if len(self.my_images) >= nextpage:
+            self.load_images(nextpage)
 
-searchhint = Label(root, text='Enter Tag of Photos you want to see:')
-searchhint.grid(row=1, column=1)
+    def previous_page(self):
+        prevpage = self.current_page - 1
+        if prevpage >= 0:
+            self.load_images(prevpage)
 
-searchbox = Entry(root, textvariable=query, width=40)
-searchbox.grid(row=1, column=2)
+    def preview(self, button):
+        details_window = windows.details_window.DetailsWindow(self, self.my_images[self.current_page + button])
+        details_window.grab_set()
 
-search = Button(root, text="Search Tag", command=search_img)
-search.grid(row=1, column=4)
+    def refresh_images(self,
+                       path):  # in case we find a way to refresh the list of photos in case the user adds/deletes one
+        if path is not None:
+            files = os.listdir(path)  # Detect in some way if changes appeared to current path
+            self.my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
+            for i in files:
+                if i[-4:] != ".jpg":
+                    files.remove(i)
 
-nextpg = Button(root, text="Next Photo", command=next_page)
-nextpg.grid(row=4, column=3)
+            for i in files:
+                exists = 0
+                image_path = os.path.join(path, i).replace("\\", "/")
+                for j in range(len(self.my_images)):
+                    if image_path == self.my_images[j].path:
+                        exists = 1
+                if exists == 0:
+                    img = Image(image_id=uuid.uuid4(), path=image_path, name=image_path.split("/")[-1])
+                    write_image_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"), image=img)
 
-prev = Button(root, text="Previous Photo", command=previous_page)
-prev.grid(row=4, column=0)
+    def search_img(self):
+        if (self.keep.get() == 0) or (self.keep.get() == 1 and self.rs == []):
+            self.tagshistoryvariable.set(self.query.get())
+            newrs = []
+            for i in self.my_images:
+                for j in i.tags:
+                    if j == self.query.get():
+                        newrs.append(i)
+            self.rs = newrs
 
-refresh = Button(root, text="Refresh image list", command=refresh_images(path))
-refresh.grid(row=5, column=1)
+        elif self.keep.get() == 1 and self.rs != []:
+            self.tagshistoryvariable.set(self.tagshistoryvariable.get() + ', ' + self.query.get())
+            newrs = []
+            for i in self.rs:
+                for j in i.tags:
+                    if j == self.query.get():
+                        newrs.append(i)
+            self.rs = newrs
+        self.load_images(0)
 
-tagshistorylabel = Label(root, text="List of last searched Tags:")
-tagshistorylabel.grid(row=5, column=2)
-
-tagshistorylist = Label(root, textvariable=tagshistoryvariable)
-tagshistorylist.grid(row=5, column=3)
-
-keepsearch = Checkbutton(root, text="Do you want to keep previous search results? ", variable=keep)
-keepsearch.grid(row=1, column=3)
-
-canvas1 = Canvas(root, width=250, height=250)
-btn1 = Button(root, text="Select Photo", command=preview())
-canvas2 = Canvas(root, width=250, height=250)
-btn2 = Button(root, text="Select Photo", command=preview())
-canvas3 = Canvas(root, width=250, height=250)
-btn3 = Button(root, text="Select Photo", command=preview())
-canvas4 = Canvas(root, width=250, height=250)
-btn4 = Button(root, text="Select Photo", command=preview())
-
-
-def open_window():
-    root.mainloop()
-    # Big question: Este necesara si o bifa pentru a face reuniunea tagurilor cautate? Bifa actuala va face intersectia
-    # Asta se traduce practic in afisarea tuturor pozelor care au oricare din tagurile x, y, z cautate
+# Big question: Este necesara si o bifa pentru a face reuniunea tagurilor cautate? Bifa actuala va face intersectia
+# Asta se traduce practic in afisarea tuturor pozelor care au oricare din tagurile x, y, z cautate

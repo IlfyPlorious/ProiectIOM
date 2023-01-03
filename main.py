@@ -1,3 +1,4 @@
 from windows import gallery_window
 
-gallery_window.open_window()
+app = gallery_window.MainWindow()
+app.mainloop()

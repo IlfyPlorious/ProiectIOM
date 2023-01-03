@@ -294,23 +294,3 @@ def extract_array_from_string(string: str):
         string_array.append(split_copy)
 
     return string_array
-
-
-def refresh_images(path):# in case we find a way to refresh the list of photos in case the user adds/deletes one
-    if path is not None:
-        files = os.listdir(path)  # Detect in some way if changes appeared to current path
-        my_images = read_images_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"))
-        for i in files:
-            if i[-4:] != ".jpg":
-                files.remove(i)
-
-        # TODO: Remove data of images that have been deleted permanently, from csv.
-        for i in files:
-            exists = 0
-            image_path = os.path.join(path, i).replace("\\", "/")
-            for j in range(len(my_images)):
-                if image_path == my_images[j].path:
-                    exists = 1
-            if exists == 0:
-                img = Image(image_id=uuid.uuid4(), path=image_path, name=image_path.split("/")[-1])
-                write_image_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"), image=img)
