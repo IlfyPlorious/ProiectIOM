@@ -291,6 +291,7 @@ def extract_array_from_string(string: str):
         split_copy = split_copy.replace(']', '')
         split_copy = split_copy.replace("'", "")
 
-        string_array.append(split_copy)
+        if split_copy != '':
+            string_array.append(split_copy)
 
     return string_array
