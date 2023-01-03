@@ -90,6 +90,8 @@ class DetailsWindow(tkinter.Toplevel):
         else:
             messagebox.showerror('Delete Error', 'Error: tag field must have a value')
 
+        self.parent.refresh_images(self.parent_path)
+
     def delete_tag(self):
         if str(self.delete_tag_entry.get()) != '':
             io_op.delete_tag_from_image(file=self.image_dir_path, image_id=self.image_data.image_id,
@@ -100,6 +102,8 @@ class DetailsWindow(tkinter.Toplevel):
                                  self.image_data.get_tags() if self.image_data.get_tags() != '' else 'No tag set')
         else:
             messagebox.showerror('Delete Error', 'Error: tag field must have a value')
+
+        self.parent.refresh_images(self.parent_path)
 
     def return_to_main_window(self):
         self.parent.refresh_images(self.parent_path)
