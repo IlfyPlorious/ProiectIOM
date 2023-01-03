@@ -205,7 +205,8 @@ class MainWindow(tkinter.Tk):
             self.load_images(prevpage)
 
     def preview(self, button):
-        details_window = windows.details_window.DetailsWindow(self, self.my_images[self.current_page + button])
+        details_window = windows.details_window.DetailsWindow(self, self.my_images[self.current_page + button],
+                                                              self.path)
         details_window.grab_set()
 
     def refresh_images(self,

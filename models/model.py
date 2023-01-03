@@ -31,7 +31,8 @@ class Image:
         for tag in self.tags:
             tags_string += f', {tag}'
 
-        tags_string = tags_string[2:]
+        tags_string = tags_string.replace(',', '', 1)
+        tags_string = tags_string.replace(' ', '', 1)
 
         return tags_string
 

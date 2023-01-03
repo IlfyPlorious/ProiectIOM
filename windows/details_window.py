@@ -2,17 +2,23 @@ import os
 import tkinter
 import tkinter as tk
 from PIL import ImageTk, Image
+from tkinter import filedialog, messagebox
+from inout import io_operations as io_op
 
 
 class DetailsWindow(tkinter.Toplevel):
-    def __init__(self, parent, img):
+    def __init__(self, parent, img, image_dir_path):
         super().__init__(parent)
 
         self.title("Picture")
         self.geometry("1200x300+300+100")
         self.resizable(width=True, height=True)
 
+        self.parent = parent
+
         self.image_data = img
+        self.parent_path = image_dir_path
+        self.image_dir_path = os.path.join(image_dir_path, 'images_database.csv')
 
         image_src = Image.open(self.image_data.path)
         image_src = image_src.resize((200, 200))
@@ -21,7 +27,7 @@ class DetailsWindow(tkinter.Toplevel):
         self.image_label = tk.Label(self, image=self.image)
         self.image_label.place(x=800, y=30)
 
-        self.back_btn = tk.Button(self, text='BACK')
+        self.back_btn = tk.Button(self, text='BACK', command=self.return_to_main_window)
         self.back_btn.grid(row=0, column=0)
 
         self.title_label = tk.Label(self, text='TITLE')
@@ -74,7 +80,27 @@ class DetailsWindow(tkinter.Toplevel):
         self.delete_txt.grid(row=13, column=1)
 
     def add_tag(self):
-        pass
+        if str(self.add_tag_entry.get()) != '':
+            io_op.add_tag_to_image(file=self.image_dir_path, image_id=self.image_data.image_id,
+                                   tag=str(self.add_tag_entry.get()))
+            self.image_data = io_op.read_image_by_id(file=self.image_dir_path, image_id=self.image_data.image_id)
+            self.tags_txt.delete('1.0', tk.END)
+            self.tags_txt.insert(tk.END,
+                                 self.image_data.get_tags() if self.image_data.get_tags() != '' else 'No tag set')
+        else:
+            messagebox.showerror('Delete Error', 'Error: tag field must have a value')
 
     def delete_tag(self):
-        pass
+        if str(self.delete_tag_entry.get()) != '':
+            io_op.delete_tag_from_image(file=self.image_dir_path, image_id=self.image_data.image_id,
+                                        tag=str(self.delete_tag_entry.get()))
+            self.image_data = io_op.read_image_by_id(file=self.image_dir_path, image_id=self.image_data.image_id)
+            self.tags_txt.delete('1.0', tk.END)
+            self.tags_txt.insert(tk.END,
+                                 self.image_data.get_tags() if self.image_data.get_tags() != '' else 'No tag set')
+        else:
+            messagebox.showerror('Delete Error', 'Error: tag field must have a value')
+
+    def return_to_main_window(self):
+        self.parent.refresh_images(self.parent_path)
+        self.destroy()
