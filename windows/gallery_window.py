@@ -218,15 +218,25 @@ class MainWindow(tkinter.Tk):
                 if i[-4:] != ".jpg":
                     files.remove(i)
 
-            for i in files:
-                exists = 0
-                image_path = os.path.join(path, i).replace("\\", "/")
-                for j in range(len(self.my_images)):
-                    if image_path == self.my_images[j].path:
-                        exists = 1
-                if exists == 0:
+            my_images_paths = {}
+            for image in self.my_images:
+                my_images_paths[image.path] = image.image_id
+
+            file_paths = []
+
+            for file in files:
+                image_path = os.path.join(path, file).replace("\\", "/")
+
+                if image_path not in my_images_paths.keys():
                     img = Image(image_id=uuid.uuid4(), path=image_path, name=image_path.split("/")[-1])
                     write_image_csv(file=os.path.join(path, 'images_database.csv').replace("\\", "/"), image=img)
+
+                file_paths.append(image_path)
+
+            for image_path_key in my_images_paths.keys():
+                if image_path_key not in file_paths:
+                    delete_image_by_id(file=os.path.join(path, 'images_database.csv').replace("\\", "/"),
+                                       image_id=my_images_paths[image_path_key])
 
     def search_img(self):
         if (self.keep.get() == 0) or (self.keep.get() == 1 and self.rs == []):

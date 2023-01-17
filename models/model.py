@@ -19,9 +19,15 @@ class Image:
         self.name = name
         self.description = description
         self.tags = tags
-        self.image_size_in_bytes = os.path.getsize(self.path)
-        self.image_size_in_kilobytes = self.image_size_in_bytes / 1024
-        self.image_size_in_megabytes = self.image_size_in_kilobytes / 1024
+
+        try:
+            self.image_size_in_bytes = os.path.getsize(self.path)
+            self.image_size_in_kilobytes = self.image_size_in_bytes / 1024
+            self.image_size_in_megabytes = self.image_size_in_kilobytes / 1024
+        except:
+            self.image_size_in_bytes = 0
+            self.image_size_in_kilobytes = 0
+            self.image_size_in_megabytes = 0
 
     def __str__(self) -> str:
         return f'Image no.{self.image_id}\tName:{self.name}\n{self.description}'
